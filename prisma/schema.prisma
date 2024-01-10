@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id              String @id @default(uuid())
+  username        String @unique
+  password        String
+  name            String
+  email           String
+  phoneNumber     String
+  profilePicture  String
+  // Define relationships
+  bookings        Booking[]
+  reviews         Review[]
+}
+
+// Define the Booking model
+model Booking {
+  id              String   @id @default(uuid())
+  userId          String
+  propertyId      String
+  checkinDate     DateTime
+  checkoutDate    DateTime
+  createdAt       DateTime @default(now())
+  numberOfGuests  Int
+  totalPrice      Int
+  bookingStatus   String
+  // Define relationships
+  user            User     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  property        Property @relation(fields: [propertyId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
+
+// Define the Host model
+model Host {
+  id              String @id @default(uuid())
+  username        String @unique
+  password        String
+  name            String
+  email           String
+  phoneNumber     String
+  profilePicture  String
+  aboutMe         String
+  listings        Property[] 
+}
+
+// Define the Property model
+model Property {
+  id             String      @id @default(uuid())
+  title          String
+  description    String?
+  location       String
+  pricePerNight  Decimal @db.Decimal(10, 2)
+  bedroomCount   Int
+  bathRoomCount  Int
+  maxGuestCount  Int
+  hostId         String
+  rating         Int
+  // Define relationships
+  bookings       Booking[]
+  reviews        Review[]
+  amenities      Amenity[]
+  host           Host @relation(fields: [hostId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
+
+
+// Define the Review model
+model Review {
+  id             String     @id @default(uuid())
+  userId         String
+  propertyId     String
+  rating         Int
+  comment        String?
+  createdAt      DateTime   @default(now())
+  // Define relationships
+  user           User       @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  property       Property   @relation(fields: [propertyId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
+
+// Define the Amenity model
+model Amenity { 
+  id    String @id @default(uuid())
+  name  String
+
+  properties  Property[]
+}
